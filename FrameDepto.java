@@ -7,57 +7,52 @@ import java.awt.event.WindowEvent;
 import java.nio.CharBuffer;
 import java.sql.*;
 
-public class FrameDepto extends JFrame{
-    private JToolBar tbBotoes; // armazenará os botões abaixo; será colocado no topo do formulári
-    private JButton btnConectar, btnCancelar;
+public class FrameDepto extends JFrame {
+  private JToolBar tbBotoes; // armazenará os botões abaixo; será colocado no topo do formulári
+  private JButton btnConectar, btnCancelar;
 
-    private static JTextField tSer, tUsu, tSen, tBD;
+  private static JTextField tSer, tUsu, tSen, tBD;
 
-    private static JTable tabDepto;	// controle que exibe dados em formato tabular (linhas e colunas)
+  private static JTable tabDepto;    // controle que exibe dados em formato tabular (linhas e colunas)
 
-    private static JLabel lbSer, lbUsu, lbSen, lbBD, lbBib;
+  private static JLabel lbSer, lbUsu, lbSen, lbBD, lbBib;
 
-    private static JPanel mainPanel, formPanel;
+  private static JPanel mainPanel, formPanel;
 
-    private static JComboBox<String> cbBib;
+  private static JComboBox<String> cbBib;
 
-    private static String[] bibliotecas = {"AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "HHH"};
-    // será usada para manter aberta uma conexão ao BD para
-    // podermos navegar entre registros e, futuramente, realizar
-    // operações CRUD
-    static private Connection conexaoDados = null;
+  private static String[] bibliotecas = {"AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "HHH"};
+  // será usada para manter aberta uma conexão ao BD para
+  // podermos navegar entre registros e, futuramente, realizar
+  // operações CRUD
+  static private Connection conexaoDados = null;
 
-    
-    public static void main(String[] args) throws SQLException{
-        SwingUtilities.invokeLater(new Runnable() {
-          @Override
-          public void run() {
-            FrameDepto form = new FrameDepto();
-            
-            // Adaptador para o fechamento da janela, matando o processo
-            form.addWindowListener(
-                new WindowAdapter()
-                {
-                  
-                  public void windowClosing (WindowEvent e)
-                  {
-                    /*
+
+  public static void main(String[] args) throws SQLException {
+    SwingUtilities.invokeLater(new Runnable() {
+      @Override
+      public void run() {
+        FrameDepto form = new FrameDepto();
+
+        // Adaptador para o fechamento da janela, matando o processo
+        form.addWindowListener(
+                new WindowAdapter() {
+                  public void windowClosing(WindowEvent e) {
                     try {
                       conexaoDados.close();
                     } catch (SQLException ex) {
                       throw new RuntimeException(ex);
                     }
-                    */
                     System.exit(0);
-                  }   
+                  }
                 }
-            );
-    
-            form.pack();
-            form.setVisible(true);
-          }
-        });
+        );
+
+        form.pack();
+        form.setVisible(true);
       }
+    });
+  }
 
   // construtor do formulário 
   public FrameDepto() {
@@ -73,7 +68,7 @@ public class FrameDepto extends JFrame{
     tbBotoes = new JToolBar();  // orientação padrão é HORIZONTAL
 
     btnConectar = new JButton("Conectar", new ImageIcon(getClass().getResource("/resources/Oeil2.png")));
-    btnConectar.setPreferredSize(new Dimension(150,45));
+    btnConectar.setPreferredSize(new Dimension(150, 45));
     btnConectar.setFocusPainted(false);       //remove uma borda que fica dentro do último botão pressionado
 
     // Os botões serão dispostos um ao lado do outro, fluindo da esquerda para a direita, de cima para baixo
@@ -103,11 +98,11 @@ public class FrameDepto extends JFrame{
 
     lbBib = new JLabel("Biblioteca: ");
     cbBib = new JComboBox<>(bibliotecas);
-    
+
     // ADICIONAR NA TELA
 
     formPanel = new JPanel();
-    formPanel.setLayout(new GridLayout(8,4, 5, 5));
+    formPanel.setLayout(new GridLayout(8, 4, 5, 5));
     formPanel.add(lbSer);
     formPanel.add(tSer);
     formPanel.add(lbBD);
@@ -131,5 +126,6 @@ public class FrameDepto extends JFrame{
     } catch (SQLException e) {
       throw new RuntimeException(e);
     }
-}
+
+  }
 }
