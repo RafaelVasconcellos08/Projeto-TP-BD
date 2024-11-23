@@ -4,33 +4,44 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.nio.CharBuffer;
 import java.sql.*;
 
 public class FrameDepto extends JFrame{
     private JToolBar tbBotoes; // armazenará os botões abaixo; será colocado no topo do formulári
     private JButton btnConectar, btnCancelar;
 
-    private static JTextField txtServidor;
+    private static JTextField tSer, tUsu, tSen, tBD;
 
     private static JTable tabDepto;	// controle que exibe dados em formato tabular (linhas e colunas)
 
+    private static JLabel lbSer, lbUsu, lbSen, lbBD, lbBib;
+
+    private static JPanel mainPanel, formPanel;
+
+    private static JComboBox<String> cbBib;
+
+    private static String[] bibliotecas = {"AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "HHH"};
     // será usada para manter aberta uma conexão ao BD para
     // podermos navegar entre registros e, futuramente, realizar
     // operações CRUD
     static private Connection conexaoDados = null;
 
-    public static void main(String[] args) {
+    
+    public static void main(String[] args) throws SQLException{
         SwingUtilities.invokeLater(new Runnable() {
           @Override
           public void run() {
             FrameDepto form = new FrameDepto();
+            
             // Adaptador para o fechamento da janela, matando o processo
             form.addWindowListener(
                 new WindowAdapter()
                 {
+                  
                   public void windowClosing (WindowEvent e)
                   {
-                    /* 
+                    /*
                     try {
                       conexaoDados.close();
                     } catch (SQLException ex) {
@@ -38,7 +49,7 @@ public class FrameDepto extends JFrame{
                     }
                     */
                     System.exit(0);
-                  }
+                  }   
                 }
             );
     
@@ -51,32 +62,74 @@ public class FrameDepto extends JFrame{
   // construtor do formulário 
   public FrameDepto() {
     setTitle("Sistema de Bibliotecas");
-    setSize(1000, 300);
+    setSize(1400, 600);
+    setMinimumSize(new Dimension(800, 600));
     // apenas chame o evento windowClosing
     setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
 
-    // Inicializa a barra de ferramentas
-    tbBotoes = new JToolBar();
-    btnConectar = new JButton("Conectar");
-    btnCancelar = new JButton("Cancelar");
+    // BOTÕES 
 
-    
-    // Adiciona a barra de ferramentas no topo
-    add(tbBotoes, BorderLayout.SOUTH);
-    
-    // Adiciona os botões à barra de ferramentas
+    // Adiciorenamos os botões ao JToolBar que os conterá
+    tbBotoes = new JToolBar();  // orientação padrão é HORIZONTAL
+
+    btnConectar = new JButton("Conectar", new ImageIcon(getClass().getResource("/resources/Oeil2.png")));
+    btnConectar.setPreferredSize(new Dimension(150,45));
+    btnConectar.setFocusPainted(false);       //remove uma borda que fica dentro do último botão pressionado
+
+    // Os botões serão dispostos um ao lado do outro, fluindo da esquerda para a direita, de cima para baixo
+    // para isso usamos um gerenciador de layout da classe FlowLayout:
+    // estabelecemos o layout do tbBotoes como flowLayout
+    tbBotoes.setLayout(new FlowLayout());
+
     tbBotoes.add(btnConectar);
-    tbBotoes.add(btnCancelar);
+    tbBotoes.addSeparator();    // coloca um separador entre esses botões e os seguintes
 
-    // Painel central com campos de texto
-    JPanel painelCentral = new JPanel(new GridLayout(6, 2, 5, 5));
-    painelCentral.setBorder(BorderFactory.createEmptyBorder(4, 4, 4, 4));
+    // os botões apenas serão enfatizados visualmente quando o mouse passar sobre eles
+    tbBotoes.setRollover(true);
 
-    painelCentral.add(new JLabel("Servidor:"));
-    txtServidor = new JTextField();
-    painelCentral.add(txtServidor);
+    // LABEL
 
-    // Adiciona o painel central ao centro do formulário
-    add(painelCentral, BorderLayout.CENTER);
+    lbSer = new JLabel("Servidor: ");
+    tSer = new JTextField();
+
+    lbBD = new JLabel("Banco de Dados: ");
+    tBD = new JTextField();
+
+    lbUsu = new JLabel("Usuário: ");
+    tUsu = new JTextField();
+
+    lbSen = new JLabel("Senha: ");
+    tSen = new JTextField();
+
+    lbBib = new JLabel("Biblioteca: ");
+    cbBib = new JComboBox<>(bibliotecas);
+    
+    // ADICIONAR NA TELA
+
+    formPanel = new JPanel();
+    formPanel.setLayout(new GridLayout(8,4, 5, 5));
+    formPanel.add(lbSer);
+    formPanel.add(tSer);
+    formPanel.add(lbBD);
+    formPanel.add(tBD);
+    formPanel.add(lbUsu);
+    formPanel.add(tUsu);
+    formPanel.add(lbSen);
+    formPanel.add(tSen);
+    formPanel.add(lbBib);
+    formPanel.add(cbBib);
+    formPanel.add(tbBotoes);
+
+    mainPanel = new JPanel();
+    mainPanel.setLayout(new BorderLayout());
+    mainPanel.add(formPanel, BorderLayout.NORTH);
+
+    add(mainPanel);
+
+    try {
+      conexaoDados = ConexaoBD.getConnection();
+    } catch (SQLException e) {
+      throw new RuntimeException(e);
+    }
 }
 }
