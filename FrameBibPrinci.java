@@ -21,6 +21,7 @@ public class FrameBibPrinci extends JFrame {
 
     private static JComboBox<String> cbBib;
 
+    private static String[] bibliotecas = {"AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "HHH"};
     // será usada para manter aberta uma conexão ao BD para
     // podermos navegar entre registros e, futuramente, realizar
     // operações CRUD
@@ -125,10 +126,16 @@ public class FrameBibPrinci extends JFrame {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Pega os valores dos campos de texto
-                String SERVER = tSer.getText(); // regulus.cotuca.unicamp.br
-                String BD = tBD.getText();
-                String USER = tUsu.getText();
-                String PASSWORD = tSen.getText();
+                String SERVER = tSer.getText().trim();
+                String BD = tBD.getText().trim();
+                String USER = tUsu.getText().trim();
+                String PASSWORD = tSen.getText().trim();
+
+                // Verifica se todos os campos foram preenchidos
+                if (SERVER.isEmpty() || BD.isEmpty() || USER.isEmpty() || PASSWORD.isEmpty()) {
+                    throw new RuntimeException("")
+                    return;
+                }
 
                 try {
                     conexaoDados = ConexaoBD.getConnection(SERVER, BD, USER, PASSWORD);
