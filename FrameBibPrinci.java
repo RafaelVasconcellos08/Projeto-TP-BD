@@ -4,12 +4,11 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.nio.CharBuffer;
 import java.sql.*;
 
 public class FrameBibPrinci extends JFrame {
     private JToolBar tbBotoes; // armazenará os botões abaixo; será colocado no topo do formulári
-    private JButton btnConectar, btnCancelar;
+    private JButton btnConectar;
 
     private static JTextField tSer, tUsu, tSen, tBD;
 
@@ -21,12 +20,12 @@ public class FrameBibPrinci extends JFrame {
 
     private static JComboBox<String> cbBib;
 
-    private static String[] bibliotecas = {"AAA", "BBB", "CCC", "DDD", "EEE", "FFF", "GGG", "HHH"};
-    // será usada para manter aberta uma conexão ao BD para
-    // podermos navegar entre registros e, futuramente, realizar
-    // operações CRUD
-    static private Connection conexaoDados = null;
+    private static ResultSet dadosDoSelect;
 
+    private static JMenuBar mBar;
+    private static JMenu mLiv, mExe, mEmp, mDev;
+
+    static private Connection conexaoDados = null;
 
     public static void main(String[] args) throws SQLException {
         SwingUtilities.invokeLater(new Runnable() {
@@ -46,12 +45,30 @@ public class FrameBibPrinci extends JFrame {
                             }
                         }
                 );
-
                 form.pack();
                 form.setVisible(true);
             }
         });
     }
+
+    // Método para carregar bibliotecas no JComboBox
+    private void Bibliotecas() {
+        String sql = "SELECT nome FROM SisBib.Biblioteca";
+        try {
+            Statement comandoSQL = conexaoDados.createStatement(
+                    ResultSet.TYPE_SCROLL_SENSITIVE,	// permite navegação
+                    ResultSet.CONCUR_UPDATABLE        // ResultSet é atualizável
+            );
+            dadosDoSelect = comandoSQL.executeQuery(sql);
+            while (dadosDoSelect.next()) {
+                String nome = dadosDoSelect.getString("nome");
+                cbBib.addItem(nome);
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(null, "Bibliotecas não encontradas!");
+        }
+    }
+
 
     // construtor do formulário
     public FrameBibPrinci() {
@@ -96,7 +113,14 @@ public class FrameBibPrinci extends JFrame {
         tSen = new JTextField();
 
         lbBib = new JLabel("Biblioteca: ");
-        cbBib = new JComboBox<>(bibliotecas);
+        cbBib = new JComboBox<>();
+        cbBib.setEnabled(false);  // Inicialmente desabilitado
+
+        mBar = new JMenuBar();
+        mLiv = new JMenu("Livros");
+        mExe = new JMenu("Exemplares");
+        mEmp = new JMenu("Empréstimos");
+        mDev = new JMenu("Devoluções");
 
         // ADICIONAR NA TELA
 
@@ -118,27 +142,48 @@ public class FrameBibPrinci extends JFrame {
         mainPanel.setLayout(new BorderLayout());
         mainPanel.add(formPanel, BorderLayout.NORTH);
 
+        mBar.add(mLiv);
+        mBar.add(mExe);
+        mBar.add(mEmp);
+        mBar.add(mDev);
+        setJMenuBar(mBar);
+
         add(mainPanel);
 
+        /*
+        mLiv.addActionListener(
+            new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                try {
+
+                } catch (SQLException ex){
+                    throw new RuntimeException(ex);
+                }
+            }
+            }
+        );
+        */
+        
         // ActionListener para o botão de conexão
         btnConectar.addActionListener(
                 new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Pega os valores dos campos de texto
-                String SERVER = tSer.getText().trim();
-                String BD = tBD.getText().trim();
-                String USER = tUsu.getText().trim();
-                String PASSWORD = tSen.getText().trim();
-
-                // Verifica se todos os campos foram preenchidos
-                if (SERVER.isEmpty() || BD.isEmpty() || USER.isEmpty() || PASSWORD.isEmpty()) {
-                    throw new RuntimeException("")
-                    return;
-                }
+                String SERVER = tSer.getText();
+                String BD = tBD.getText();
+                String USER = tUsu.getText();
+                String PASSWORD = tSen.getText();
 
                 try {
                     conexaoDados = ConexaoBD.getConnection(SERVER, BD, USER, PASSWORD);
+                    JOptionPane.showMessageDialog(null, "Conectado!!");
+
+                    Bibliotecas();
+
+                    // Habilitar a seleção de biblioteca e o menu
+                    cbBib.setEnabled(true);
                 } catch (SQLException ex) {
                     throw new RuntimeException(ex);
                 }

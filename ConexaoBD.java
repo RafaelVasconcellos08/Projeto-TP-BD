@@ -21,5 +21,3 @@ public class ConexaoBD {
         return DriverManager.getConnection(URL, USER, PASSWORD);
     }
 }
-
-//vc é gay
