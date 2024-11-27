@@ -25,7 +25,10 @@ public class FrameBibPrinci extends JFrame {
     private static JMenuBar mBar;
     private static JMenu mLiv, mExe, mEmp, mDev;
 
-    static private Connection conexaoDados = null;
+    protected static Connection conexaoDados = null;
+
+    protected static int idBiblioteca;
+    private static String nome;
 
     public static void main(String[] args) throws SQLException {
         SwingUtilities.invokeLater(new Runnable() {
@@ -51,9 +54,17 @@ public class FrameBibPrinci extends JFrame {
         });
     }
 
+    static private void exibirRegistro() throws SQLException
+    {
+        if (!dadosDoSelect.rowDeleted())
+        {
+            cbBib.addItem(dadosDoSelect.getString("nome"));
+        }
+    }
+
     // Método para carregar bibliotecas no JComboBox
-    private void Bibliotecas() {
-        String sql = "SELECT nome FROM SisBib.Biblioteca";
+    private static void preencherDados() {
+        String sql = "SELECT idBiblioteca, nome FROM SisBib.Biblioteca";
         try {
             Statement comandoSQL = conexaoDados.createStatement(
                     ResultSet.TYPE_SCROLL_SENSITIVE,	// permite navegação
@@ -61,8 +72,8 @@ public class FrameBibPrinci extends JFrame {
             );
             dadosDoSelect = comandoSQL.executeQuery(sql);
             while (dadosDoSelect.next()) {
-                String nome = dadosDoSelect.getString("nome");
-                cbBib.addItem(nome);
+                idBiblioteca = dadosDoSelect.getInt("idBiblioteca");
+                exibirRegistro();
             }
         } catch (SQLException ex) {
             JOptionPane.showMessageDialog(null, "Bibliotecas não encontradas!");
@@ -150,28 +161,39 @@ public class FrameBibPrinci extends JFrame {
 
         add(mainPanel);
 
-        /*
+
         mLiv.addActionListener(
             new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                FrameLivros livros = new FrameLivros(idBiblioteca);
                 try {
-
-                } catch (SQLException ex){
+                    livros.addWindowListener(
+                            new WindowAdapter() {
+                                public void windowClosing(WindowEvent e) {
+                                    try {
+                                        conexaoDados.close();
+                                    } catch (SQLException ex) {
+                                        throw new RuntimeException(ex);
+                                    }
+                                    System.exit(0);
+                                }
+                            }
+                    );
+                } catch (Exception ex) {
                     throw new RuntimeException(ex);
                 }
             }
             }
         );
-        */
-        
+
         // ActionListener para o botão de conexão
         btnConectar.addActionListener(
                 new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // Pega os valores dos campos de texto
-                String SERVER = tSer.getText();
+                String SERVER = tSer.getText(); // regulus.cotuca.unicamp.br
                 String BD = tBD.getText();
                 String USER = tUsu.getText();
                 String PASSWORD = tSen.getText();
@@ -180,7 +202,7 @@ public class FrameBibPrinci extends JFrame {
                     conexaoDados = ConexaoBD.getConnection(SERVER, BD, USER, PASSWORD);
                     JOptionPane.showMessageDialog(null, "Conectado!!");
 
-                    Bibliotecas();
+                    preencherDados();
 
                     // Habilitar a seleção de biblioteca e o menu
                     cbBib.setEnabled(true);

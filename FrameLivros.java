@@ -12,7 +12,7 @@ public class FrameLivros extends JFrame {
     private JButton btnIncluir, btnExcluir, btnAlterar, btnBuscar, btnPrimeiro, btnAnterior, btnProximo, btnUltimo;
 
     private ResultSet dadosLivros; // Resultado da consulta de livros
-    private Connection conexaoDados;
+    protected Connection conexaoDados;
 
     public FrameLivros(int idBiblioteca) {
         this.idBiblioteca = idBiblioteca;

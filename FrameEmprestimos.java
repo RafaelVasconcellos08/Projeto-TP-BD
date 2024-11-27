@@ -1,12 +1,14 @@
 import javax.swing.*;
+import javax.swing.table.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
 import java.text.SimpleDateFormat;
+import java.util.*;
 
 public class FrameEmprestimos extends JFrame {
     private int idBiblioteca;
-    private Connection conexaoDados;
+    protected Connection conexaoDados;
 
     private JTextField tCodLeitor, tCodExemplar, tDataEmprestimo, tDataPrevDevolucao;
     private JButton btnEmprestar, btnVerAtrasados;
@@ -17,7 +19,7 @@ public class FrameEmprestimos extends JFrame {
 
     public FrameEmprestimos(int idBiblioteca) {
         this.idBiblioteca = idBiblioteca;
-        this.conexaoDados = FrameBibPrinci.getConexaoDados();  // Pegar a conexão do Frame principal
+        this.conexaoDados = FrameBibPrinci.conexaoDados;  // Pegar a conexão do Frame principal
 
         setTitle("Empréstimos de Livros - Biblioteca " + idBiblioteca);
         setSize(800, 600);

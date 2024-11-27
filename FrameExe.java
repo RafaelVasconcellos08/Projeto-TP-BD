@@ -5,7 +5,7 @@ import java.sql.*;
 
 public class FrameExe extends JFrame {
     private int idBiblioteca;
-    private Connection conexaoDados;
+    protected Connection conexaoDados;
 
     private JTable tabelaExemplares;
     private JTextField tCodExemplar, tCodLivro, tCondicao;
@@ -14,7 +14,7 @@ public class FrameExe extends JFrame {
 
     public FrameExe(int idBiblioteca) {
         this.idBiblioteca = idBiblioteca;
-        this.conexaoDados = FrameBibPrinci.getConexaoDados();  // Obtém a conexão do Frame principal
+        this.conexaoDados = FrameBibPrinci.conexaoDados;  // Obtém a conexão do Frame principal
 
         setTitle("Manutenção de Exemplares - Biblioteca " + idBiblioteca);
         setSize(800, 600);
