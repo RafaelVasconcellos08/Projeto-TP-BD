@@ -5,6 +5,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.sql.*;
+import java.util.Objects;
 
 public class FrameBibPrinci extends JFrame {
     private JToolBar tbBotoes; // armazenará os botões abaixo; será colocado no topo do formulári
@@ -24,6 +25,7 @@ public class FrameBibPrinci extends JFrame {
 
     private static JMenuBar mBar;
     private static JMenu mLiv, mExe, mEmp, mDev;
+    private static JMenuItem teste;
 
     protected static Connection conexaoDados = null;
 
@@ -59,6 +61,7 @@ public class FrameBibPrinci extends JFrame {
         if (!dadosDoSelect.rowDeleted())
         {
             cbBib.addItem(dadosDoSelect.getString("nome"));
+            idBiblioteca = dadosDoSelect.getInt("idBiblioteca");
         }
     }
 
@@ -72,7 +75,6 @@ public class FrameBibPrinci extends JFrame {
             );
             dadosDoSelect = comandoSQL.executeQuery(sql);
             while (dadosDoSelect.next()) {
-                idBiblioteca = dadosDoSelect.getInt("idBiblioteca");
                 exibirRegistro();
             }
         } catch (SQLException ex) {
@@ -94,7 +96,7 @@ public class FrameBibPrinci extends JFrame {
         // Adiciorenamos os botões ao JToolBar que os conterá
         tbBotoes = new JToolBar();  // orientação padrão é HORIZONTAL
 
-        btnConectar = new JButton("Conectar", new ImageIcon(getClass().getResource("/resources/Oeil2.png")));
+        btnConectar = new JButton("Conectar", new ImageIcon(Objects.requireNonNull(getClass().getResource("/resources/Oeil2.png"))));
         btnConectar.setPreferredSize(new Dimension(150, 45));
         btnConectar.setFocusPainted(false);       //remove uma borda que fica dentro do último botão pressionado
 
@@ -133,6 +135,8 @@ public class FrameBibPrinci extends JFrame {
         mEmp = new JMenu("Empréstimos");
         mDev = new JMenu("Devoluções");
 
+        teste = new JMenuItem("teste");
+
         // ADICIONAR NA TELA
 
         formPanel = new JPanel();
@@ -157,35 +161,42 @@ public class FrameBibPrinci extends JFrame {
         mBar.add(mExe);
         mBar.add(mEmp);
         mBar.add(mDev);
+        mLiv.add(teste);
         setJMenuBar(mBar);
 
         add(mainPanel);
 
-
-        mLiv.addActionListener(
-            new ActionListener() {
+        cbBib.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                FrameLivros livros = new FrameLivros(idBiblioteca);
                 try {
-                    livros.addWindowListener(
-                            new WindowAdapter() {
-                                public void windowClosing(WindowEvent e) {
-                                    try {
-                                        conexaoDados.close();
-                                    } catch (SQLException ex) {
-                                        throw new RuntimeException(ex);
-                                    }
-                                    System.exit(0);
-                                }
-                            }
-                    );
-                } catch (Exception ex) {
-                    throw new RuntimeException(ex);
+                    int selectedIndex = cbBib.getSelectedIndex();
+                    if (selectedIndex >= 0 && dadosDoSelect.absolute(selectedIndex + 1)) {
+                        idBiblioteca = dadosDoSelect.getInt("idBiblioteca");
+                    }
+                } catch (SQLException ex) {
+                    JOptionPane.showMessageDialog(null, "Erro ao selecionar biblioteca!");
                 }
             }
+        });
+
+        teste.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (idBiblioteca == 0) {
+                    JOptionPane.showMessageDialog(null, "Selecione uma biblioteca antes de continuar!");
+                    return;
+                }
+                try {
+                    FrameLivros livros = new FrameLivros(idBiblioteca);
+                    livros.setVisible(true);
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, "Erro ao abrir o FrameLivros: " + ex.getMessage());
+                    ex.printStackTrace();
+                }
             }
-        );
+        });
+
 
         // ActionListener para o botão de conexão
         btnConectar.addActionListener(
@@ -201,7 +212,7 @@ public class FrameBibPrinci extends JFrame {
                 try {
                     conexaoDados = ConexaoBD.getConnection(SERVER, BD, USER, PASSWORD);
                     JOptionPane.showMessageDialog(null, "Conectado!!");
-
+                    JOptionPane.showMessageDialog(null, idBiblioteca);
                     preencherDados();
 
                     // Habilitar a seleção de biblioteca e o menu
