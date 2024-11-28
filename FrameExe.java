@@ -2,199 +2,280 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
+import java.util.*;
 
 public class FrameExe extends JFrame {
-    private int idBiblioteca;
-    protected Connection conexaoDados;
+    private static int idBiblioteca, idB;
 
-    private JTable tabelaExemplares;
-    private JTextField tCodExemplar, tCodLivro, tCondicao;
-    private JButton btnPrimeiro, btnAnterior, btnProximo, btnUltimo, btnIncluir, btnExcluir, btnAlterar, btnBuscar;
-    private ResultSet rsExemplares;
+    private static JToolBar tbBotoes;
 
-    public FrameExe(int idBiblioteca) {
-        this.idBiblioteca = idBiblioteca;
-        this.conexaoDados = FrameBibPrinci.conexaoDados;  // Obtém a conexão do Frame principal
+    private static JTextField txtCodLivro, txtNumExem;
 
-        setTitle("Manutenção de Exemplares - Biblioteca " + idBiblioteca);
-        setSize(800, 600);
-        setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
-        setLayout(new BorderLayout());
+    private static JButton btnIncluir, btnExcluir, btnAlterar, btnBuscar, btnInicio, btnAnterior, btnProximo, btnFinal;
 
-        // Painel de Campos e Botões
-        JPanel panel = new JPanel(new GridLayout(4, 2));
-        JLabel lCodExemplar = new JLabel("Código Exemplar:");
-        JLabel lCodLivro = new JLabel("Código Livro:");
-        JLabel lCondicao = new JLabel("Condição:");
+    private static ResultSet dadosDoSelect;
+    protected static Connection conexaoDados;
 
-        tCodExemplar = new JTextField();
-        tCodLivro = new JTextField();
-        tCondicao = new JTextField();
-
-        panel.add(lCodExemplar); panel.add(tCodExemplar);
-        panel.add(lCodLivro); panel.add(tCodLivro);
-        panel.add(lCondicao); panel.add(tCondicao);
-
-        add(panel, BorderLayout.NORTH);
-
-        // Botões de navegação e ações
-        JPanel panelBotoes = new JPanel(new FlowLayout());
-        btnPrimeiro = new JButton("Primeiro");
-        btnAnterior = new JButton("Anterior");
-        btnProximo = new JButton("Próximo");
-        btnUltimo = new JButton("Último");
-        btnIncluir = new JButton("Incluir");
-        btnExcluir = new JButton("Excluir");
-        btnAlterar = new JButton("Alterar");
-        btnBuscar = new JButton("Buscar");
-
-        panelBotoes.add(btnPrimeiro); panelBotoes.add(btnAnterior);
-        panelBotoes.add(btnProximo); panelBotoes.add(btnUltimo);
-        panelBotoes.add(btnIncluir); panelBotoes.add(btnExcluir);
-        panelBotoes.add(btnAlterar); panelBotoes.add(btnBuscar);
-
-        add(panelBotoes, BorderLayout.SOUTH);
-
-        // Configurar os eventos para os botões
-        configurarEventos();
-
-        // Carregar a tabela com os dados dos exemplares
-        carregarExemplares();
-    }
-
-    // Função para carregar os exemplares no ResultSet e exibir o primeiro registro
-    private void carregarExemplares() {
+    private static void preencherDados() {
+        String sql = "";
         try {
-            String sql = "SELECT * FROM SisBib.Exemplar WHERE idBiblioteca = ?";
-            PreparedStatement stmt = conexaoDados.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-            stmt.setInt(1, idBiblioteca);
-            rsExemplares = stmt.executeQuery();
-
-            if (rsExemplares.next()) {
-                mostrarRegistroAtual();
+            Statement comandoSQL = conexaoDados.createStatement(
+                    ResultSet.TYPE_SCROLL_SENSITIVE,
+                    ResultSet.CONCUR_UPDATABLE
+            );
+            try {
+                dadosDoSelect = comandoSQL.executeQuery(sql);
+                if (dadosDoSelect.next()) {
+                    exibirRegistro();
+                } else {
+                    JOptionPane.showMessageDialog(null, "Registro não encontrado!");
+                }
             }
-        } catch (SQLException e) {
-            e.printStackTrace();
+            catch (SQLException ex) {
+                ex.printStackTrace();
+            }
+        }
+        catch (SQLException ex) {
+            ex.printStackTrace();
         }
     }
 
-    // Função para mostrar o registro atual nos campos de texto
-    private void mostrarRegistroAtual() throws SQLException {
-        tCodExemplar.setText(rsExemplares.getString("codExemplar"));
-        tCodLivro.setText(rsExemplares.getString("codLivro"));
-        tCondicao.setText(rsExemplares.getString("condicao"));
+    static private void exibirRegistro() throws SQLException
+    {
+        if (!dadosDoSelect.rowDeleted())
+        {
+            txtCodLivro.setText(dadosDoSelect.getString("codLivro"));
+            txtNumExem.setText(dadosDoSelect.getString("numeroExemplar"));
+        }
     }
 
-    // Configuração dos eventos dos botões
-    private void configurarEventos() {
-        btnPrimeiro.addActionListener(e -> {
-            try {
-                if (rsExemplares.first()) {
-                    mostrarRegistroAtual();
-                }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        });
+    public FrameExe(int idBiblioteca) {
+        setTitle("Exemplar" + idB);
+        setSize(600, 400);
+        setLayout(new BorderLayout());
+        tbBotoes = new JToolBar();
+        JPanel pnlCampos = new JPanel();
 
-        btnAnterior.addActionListener(e -> {
-            try {
-                if (rsExemplares.previous()) {
-                    mostrarRegistroAtual();
-                }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        });
+        pnlCampos.setLayout(new GridLayout(4, 2));
+        txtCodLivro = new JTextField();
+        txtNumExem = new JTextField();
 
-        btnProximo.addActionListener(e -> {
-            try {
-                if (rsExemplares.next()) {
-                    mostrarRegistroAtual();
-                }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        });
+        pnlCampos.add(new JLabel("CodLivro:"));
+        pnlCampos.add(txtCodLivro);
+        pnlCampos.add(new JLabel("numeroExemplar:"));
+        pnlCampos.add(txtNumExem);
 
-        btnUltimo.addActionListener(e -> {
-            try {
-                if (rsExemplares.last()) {
-                    mostrarRegistroAtual();
-                }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        });
+        btnAlterar = new JButton("Alterar");
 
-        // Evento para incluir um novo exemplar
-        btnIncluir.addActionListener(e -> {
-            try {
-                String sqlInsert = "INSERT INTO SisBib.Exemplar (codExemplar, codLivro, condicao, idBiblioteca) VALUES (?, ?, ?, ?)";
-                PreparedStatement stmt = conexaoDados.prepareStatement(sqlInsert);
-                stmt.setString(1, tCodExemplar.getText());
-                stmt.setString(2, tCodLivro.getText());
-                stmt.setString(3, tCondicao.getText());
-                stmt.setInt(4, idBiblioteca);
-                stmt.executeUpdate();
+        btnInicio = new JButton("Inicio", new ImageIcon(Objects.requireNonNull(getClass().getResource("/resources/first.png"))));
+        btnInicio.setPreferredSize(new Dimension(65, 45));
+        btnInicio.setVerticalTextPosition(SwingConstants.BOTTOM);
+        btnInicio.setHorizontalTextPosition(SwingConstants.CENTER);
+        btnInicio.setFocusPainted(false);
 
-                JOptionPane.showMessageDialog(this, "Exemplar incluído com sucesso!");
-                carregarExemplares();  // Recarregar os dados
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        });
+        btnFinal = new JButton("Final", new ImageIcon(Objects.requireNonNull(getClass().getResource("/resources/last.png"))));
+        btnFinal.setPreferredSize(new Dimension(65, 45));
+        btnFinal.setVerticalTextPosition(SwingConstants.BOTTOM);
+        btnFinal.setHorizontalTextPosition(SwingConstants.CENTER);
+        btnFinal.setFocusPainted(false);
 
-        // Evento para excluir um exemplar
-        btnExcluir.addActionListener(e -> {
-            try {
-                String sqlDelete = "DELETE FROM SisBib.Exemplar WHERE codExemplar = ?";
-                PreparedStatement stmt = conexaoDados.prepareStatement(sqlDelete);
-                stmt.setString(1, tCodExemplar.getText());
-                stmt.executeUpdate();
+        btnAnterior = new JButton("Voltar", new ImageIcon(Objects.requireNonNull(getClass().getResource("/resources/prior.png"))));
+        btnAnterior.setPreferredSize(new Dimension(65, 45));
+        btnAnterior.setVerticalTextPosition(SwingConstants.BOTTOM);
+        btnAnterior.setHorizontalTextPosition(SwingConstants.CENTER);
+        btnAnterior.setFocusPainted(false);
 
-                JOptionPane.showMessageDialog(this, "Exemplar excluído com sucesso!");
-                carregarExemplares();  // Recarregar os dados
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        });
+        btnProximo = new JButton("Avancar", new ImageIcon(Objects.requireNonNull(getClass().getResource("/resources/next.png"))));
+        btnProximo.setPreferredSize(new Dimension(65, 45));
+        btnProximo.setVerticalTextPosition(SwingConstants.BOTTOM);
+        btnProximo.setHorizontalTextPosition(SwingConstants.CENTER);
+        btnProximo.setFocusPainted(false);
 
-        // Evento para alterar os dados de um exemplar
-        btnAlterar.addActionListener(e -> {
-            try {
-                String sqlUpdate = "UPDATE SisBib.Exemplar SET codLivro = ?, condicao = ? WHERE codExemplar = ? AND idBiblioteca = ?";
-                PreparedStatement stmt = conexaoDados.prepareStatement(sqlUpdate);
-                stmt.setString(1, tCodLivro.getText());
-                stmt.setString(2, tCondicao.getText());
-                stmt.setString(3, tCodExemplar.getText());
-                stmt.setInt(4, idBiblioteca);
-                stmt.executeUpdate();
+        btnBuscar = new JButton("Buscar", new ImageIcon(Objects.requireNonNull(getClass().getResource("/resources/find.png"))));
+        btnBuscar.setPreferredSize(new Dimension(65, 45));
+        btnBuscar.setVerticalTextPosition(SwingConstants.BOTTOM);
+        btnBuscar.setHorizontalTextPosition(SwingConstants.CENTER);
+        btnBuscar.setFocusPainted(false);
 
-                JOptionPane.showMessageDialog(this, "Exemplar atualizado com sucesso!");
-                carregarExemplares();  // Recarregar os dados
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        });
+        btnIncluir = new JButton("Incluir", new ImageIcon(Objects.requireNonNull(getClass().getResource("/resources/add.png"))));
+        btnIncluir.setPreferredSize(new Dimension(65, 45));
+        btnIncluir.setVerticalTextPosition(SwingConstants.BOTTOM);
+        btnIncluir.setHorizontalTextPosition(SwingConstants.CENTER);
+        btnIncluir.setFocusPainted(false);
 
-        // Evento para buscar um exemplar específico
-        btnBuscar.addActionListener(e -> {
-            try {
-                String sql = "SELECT * FROM SisBib.Exemplar WHERE codExemplar = ? AND idBiblioteca = ?";
-                PreparedStatement stmt = conexaoDados.prepareStatement(sql, ResultSet.TYPE_SCROLL_SENSITIVE, ResultSet.CONCUR_UPDATABLE);
-                stmt.setString(1, tCodExemplar.getText());
-                stmt.setInt(2, idBiblioteca);
-                rsExemplares = stmt.executeQuery();
+        btnExcluir = new JButton("Excluir", new ImageIcon(Objects.requireNonNull(getClass().getResource("/resources/minus.png"))));
+        btnExcluir.setPreferredSize(new Dimension(65, 45));
+        btnExcluir.setVerticalTextPosition(SwingConstants.BOTTOM);
+        btnExcluir.setHorizontalTextPosition(SwingConstants.CENTER);
+        btnExcluir.setFocusPainted(false);
 
-                if (rsExemplares.next()) {
-                    mostrarRegistroAtual();
-                } else {
-                    JOptionPane.showMessageDialog(this, "Exemplar não encontrado.");
-                }
-            } catch (SQLException ex) {
-                ex.printStackTrace();
-            }
-        });
+        add(tbBotoes, BorderLayout.NORTH);
+
+        tbBotoes.setLayout(new FlowLayout());
+
+        tbBotoes.add(btnInicio);
+        tbBotoes.add(btnAnterior);
+        tbBotoes.add(btnProximo);
+        tbBotoes.add(btnFinal);
+        tbBotoes.addSeparator();
+
+        tbBotoes.add(btnBuscar);
+        tbBotoes.addSeparator();
+
+        tbBotoes.add(btnAlterar);
+        tbBotoes.add(btnIncluir);
+        tbBotoes.add(btnExcluir);
+        tbBotoes.addSeparator();
+
+        btnIncluir.addActionListener(
+                new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e)
+                    {
+                        try {
+                            dadosDoSelect.moveToInsertRow();
+                            dadosDoSelect.updateString("codLivro", txtCodLivro.getText());
+                            dadosDoSelect.updateString("titulo", txtNumExem.getText());
+                            dadosDoSelect.insertRow();
+                            JOptionPane.showMessageDialog(null, "Livro incluído com sucesso!");
+                            preencherDados();
+                        } catch (SQLException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+
+        btnExcluir.addActionListener(
+                new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        try
+                        {
+                            if (JOptionPane.showConfirmDialog(
+                                    null, "Deseja realmente excluir?") ==
+                                    JOptionPane.OK_OPTION)
+                            {
+                                dadosDoSelect.deleteRow();
+                                JOptionPane.showMessageDialog(null, "Exclusão bem sucedida!");
+                                exibirRegistro();
+                            }
+                        }
+                        catch (SQLException ex)
+                        {
+                            System.out.println(ex.getMessage());
+                        }
+                    }
+                });
+
+        btnAlterar.addActionListener(
+                new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        try {
+                            dadosDoSelect.updateString("codLivro", txtCodLivro.getText());
+                            dadosDoSelect.updateString("titulo", txtNumExem.getText());
+                            dadosDoSelect.updateRow();
+                            JOptionPane.showMessageDialog(null, "Livro alterado!");
+                        } catch (SQLException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+
+        btnBuscar.addActionListener(
+                new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        try
+                        {
+                            int posicaoAnterior = dadosDoSelect.getRow();
+                            int chaveProcurada = Integer.parseInt(txtCodLivro.getText());
+                            dadosDoSelect.beforeFirst();
+                            boolean achou = false;
+                            while (! achou && dadosDoSelect.next())
+                            {
+                                if (dadosDoSelect.getInt("numDepto") == chaveProcurada)
+                                    achou = true;
+                            }
+                            if (!achou)
+                            {
+                                JOptionPane.showMessageDialog(null, "Registro não encontrado!");
+                                dadosDoSelect.absolute(posicaoAnterior);
+                            }
+                            exibirRegistro();
+                        }
+                        catch (SQLException exception)
+                        {
+                            throw new RuntimeException(exception);
+                        }
+                    }
+                });
+
+        btnInicio.addActionListener(
+                new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        try {
+                            if (dadosDoSelect.first()) {
+                                exibirRegistro();
+                            } else{
+                                JOptionPane.showMessageDialog(null, "Não achou Primeiro registro!");
+                            }
+                        } catch (SQLException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+
+        btnAnterior.addActionListener(
+                new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        try {
+                            if (dadosDoSelect.previous()) {
+                                exibirRegistro();
+                            } else {
+                                JOptionPane.showMessageDialog(null, "Não há registros anteriores!");
+                            }
+                        } catch (SQLException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+
+        btnProximo.addActionListener(
+                new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        try {
+                            if (dadosDoSelect.next()) {
+                                exibirRegistro();
+                            } else {
+                                JOptionPane.showMessageDialog(null, "Não achou próximo registro!");
+                            }
+                        } catch (SQLException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+
+        btnFinal.addActionListener(
+                new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        try {
+                            if (dadosDoSelect.last()) {
+                                exibirRegistro();
+                            } else{
+                                JOptionPane.showMessageDialog(null, "Não achou Último registro!");
+                            }
+                        } catch (SQLException ex) {
+                            ex.printStackTrace();
+                        }
+                    }
+                });
+
     }
+
+
 }
